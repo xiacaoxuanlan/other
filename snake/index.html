@@ -10,6 +10,55 @@
             height: 600px;
             background-color: #CCC;
             position: relative;
+            margin-bottom: 20px;
+        }
+
+        .btn-box {
+            width: 800px;
+            height: 600px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .btn-box .btn {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 200px;
+            text-align: center;
+            line-height: 200px;
+            font-size: 80px;
+            background-color: #CCC;
+            color: #fff;
+        }
+
+        .btn-box .btn.top {
+            left: 200px;
+        }
+
+        .btn-box .btn.right {
+            left: 400px;
+            top: 200px;
+        }
+
+        .btn-box .btn.bottom {
+            left: 200px;
+            top: 400px;
+        }
+
+        .btn-box .btn.left {
+            top: 200px;
+        }
+
+        .btn-pause {
+            width: 800px;
+            height: 200px;
+            text-align: center;
+            line-height: 200px;
+            font-size: 80px;
+            background-color: #CCC;
+            color: #fff;
         }
     </style>
 </head>
@@ -17,6 +66,13 @@
 <body>
     <!--画出地图,设置样式-->
     <div id="map" class="map"></div>
+    <div class="btn-box" id="btn-box">
+        <div class="btn top" data-direction="top">上</div>
+        <div class="btn right" data-direction="right">右</div>
+        <div class="btn bottom" data-direction="bottom">下</div>
+        <div class="btn left" data-direction="left">左</div>
+    </div>
+    <div class="btn-pause" id="btn-pause" onclick="btnToggleGame()">开始游戏</div>
     <video id="video" controls="" autoplay="" name="media" style="display: none;">
         <source src="./mp3/屋顶-周杰伦.mp3" type="audio/mpeg">
     </video>
@@ -71,13 +127,24 @@
             this.direction = direction || 'right';
 
             this.body = [
-                { x: 3, y: 2, color: 'red' }, // 头
-                { x: 2, y: 2, color: 'orange' }, // 身体
-                { x: 1, y: 2, color: 'orange' }, // 身体
+                // { x: 3, y: 2, color: 'red' }, // 头
+                // { x: 2, y: 2, color: 'orange' }, // 身体
+                // { x: 1, y: 2, color: 'orange' }, // 身体
             ];
         }
 
         Snake.prototype.init = function (map) {
+            this.direction = 'right';
+            this.body = [
+                { x: 3, y: 2, color: 'red' }, // 头
+                { x: 2, y: 2, color: 'orange' }, // 身体
+                { x: 1, y: 2, color: 'orange' }, // 身体
+            ];
+
+            this.render(map);
+        }
+
+        Snake.prototype.render = function (map) {
             remove();
             for (let i = 0; i < this.body.length; i++) {
                 const obj = this.body[i];
@@ -134,6 +201,8 @@
                 });
                 food.init(map);
             }
+
+            this.render(map);
         }
 
         function remove() {
@@ -157,18 +226,26 @@
         }
 
         Game.prototype.init = function () {
+            this.gameRunning = false;
+            this.gameOver = false;
             this.food.init(this.map);
             this.snake.init(this.map);
-            // this.runSnake();
             this.bindKey();
+        }
+        
+        Game.prototype.reset = function () {
+            this.gameRunning = false;
+            this.gameOver = false;
+            this.food.init(this.map);
+            this.snake.init(this.map);
         }
 
         Game.prototype.runSnake = function () {
             this.gameRunning = true;
             this.musicPlay();
+            clearInterval(this.timer);
             this.timer = setInterval(() => {
                 this.snake.move(this.food, this.map);
-                this.snake.init(this.map);
 
                 var headX = this.snake.body[0].x;
                 var headY = this.snake.body[0].y;
@@ -179,6 +256,7 @@
                     this.musicPause();
                     alert('game over');
                     console.log('结束游戏');
+                    window.dispatchEvent(new Event('gameOver'));
                 }
                 if (headY < 0 || headY * this.snake.height >= this.map.offsetHeight) {
                     clearInterval(this.timer);
@@ -187,12 +265,13 @@
                     this.musicPause();
                     alert('game over');
                     console.log('结束游戏');
+                    window.dispatchEvent(new Event('gameOver'));
                 }
             }, 100);
         }
 
         Game.prototype.bindKey = function () {
-            document.addEventListener('keydown', (e) => {
+            let bindkey = (e) => {
                 switch (e.keyCode) {
                     case 37: this.snake.direction = 'left'; break;
                     case 38: this.snake.direction = 'top'; break;
@@ -202,11 +281,15 @@
                         this.toggleGame();
                         break;
                 }
-            }, false);
+            }
+            // document.removeEventListener('keydown',bindkey);
+            document.addEventListener('keydown', bindkey, false);
         }
 
         Game.prototype.toggleGame = function () {
             if (this.gameOver) {
+                this.reset();
+                this.runSnake();
                 return;
             }
             if (this.gameRunning) {
@@ -218,6 +301,12 @@
                 console.log('继续游戏');
                 this.runSnake();
             }
+        }
+
+        Game.prototype.on = function (eventName, cb) {
+            window.addEventListener('gameOver', () => {
+                cb && cb();
+            }, false);
         }
 
         Game.prototype.musicPlay = function () {
@@ -233,6 +322,67 @@
 
     var game = new Game(document.getElementById('map'));
     game.init();
+
+    game.on('gameOver', () => {
+        document.getElementById('btn-pause').innerText = '开始游戏';
+
+    });
+
+    // 按钮控制开始/暂停
+    function btnToggleGame() {
+        game.toggleGame();
+        if (game.gameRunning) {
+            document.getElementById('btn-pause').innerText = '暂停游戏';
+        } else {
+            document.getElementById('btn-pause').innerText = '继续游戏';
+        }
+    }
+    // 按钮控制方向
+    function changeDirection() {
+        game.toggleGame();
+        if (game.gameRunning) {
+            document.getElementById('btn-pause').innerText = '暂停游戏';
+        } else {
+            document.getElementById('btn-pause').innerText = '继续游戏';
+        }
+    }
+
+    document.getElementById('btn-box').addEventListener('click', (e) => {
+        // console.log(e.target.dataset.direction);
+        game.snake.direction = e.target.dataset.direction;
+    }, false);
+
+    function getBrowser() {
+        let userAgent = navigator.userAgent;
+        if (userAgent.indexOf("Chrome") > -1) {
+            return 'pc';
+            // return "Google Chrome";
+        } else if (userAgent.indexOf("Safari") > -1) {
+            return 'mobile';
+            // return "Apple Safari";
+        } else if (userAgent.indexOf("Firefox") > -1) {
+            return 'pc';
+            // return "Mozilla Firefox";
+        } else if (userAgent.indexOf("MSIE") > -1 || userAgent.indexOf("Trident/") > -1) {
+            return 'pc';
+            // return "Microsoft Internet Explorer";
+        } else if (userAgent.indexOf("Edge") > -1) {
+            return 'pc';
+            // return "Microsoft Edge";
+        } else if (userAgent.indexOf("OPR") > -1) {
+            return 'pc';
+            // return "Opera";
+        } else {
+            return 'mobile';
+            // return "Unknown Browser";
+        }
+    }
+
+    console.log(getBrowser());
+    if (getBrowser() === 'pc') {
+        document.getElementById('btn-box').style.display = 'none';
+        document.getElementById('btn-pause').style.display = 'none';
+    }
 </script>
 
 </html>
