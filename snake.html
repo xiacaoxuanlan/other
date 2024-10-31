@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>面向对象游戏-贪吃蛇</title>
+    <style>
+        .map {
+            width: 800px;
+            height: 600px;
+            background-color: #CCC;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <!--画出地图,设置样式-->
+    <div id="map" class="map"></div>
+    <video id="video" controls="" autoplay="" name="media" style="display: none;">
+        <source src="https://m801.music.126.net/20241031152306/4876c0ab584f63e5fc192db641c9b4b2/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/9444694535/c8bb/65da/db54/9e257ff0610f84e4242cf0127dac6005.mp3?vuutv=CxX9HDq5KGZvVDJqfReyfcp7M84v36yyivUgWQMeGPh9xtOXfGSN7FhsNQZWcDHAKQx95letSJqbiKswsNlBcUwggeLb9iYnhMpFlzFrK+4TL6w1H3BD0LJamsT+NmOKsAMC/4hBISmWI0Bp81kCWC/6r7BYiGM/qKwRgbtmliOuk/vKsr4IaWRarq15YOpbYVxP+C03Txg9Vqj8vGHDeC0ag0nK/odJTpVSVXPZheAAPGDgJd5YBgX/TWEa+RTua9gskgf9ri/l+GPY9svUsofh+tXHhRC0Ocx7LNxS+9STHhjDRkt/5MHV2EFsGfak01pqypys53gtuf5AqYHJ7t61rypR/hHJ/B3loJxvg5c=" type="audio/mpeg">
+    </video>
+</body>
+
+<script>
+    // 食物
+    (function () {
+        var elements = [];
+        function Food(x, y, width, height, color) {
+            this.x = x || 0;
+            this.y = y || 0;
+            this.width = width || 20;
+            this.height = height || 20;
+            this.color = color || 'green';
+        }
+        Food.prototype.init = function (map) {
+            remove();
+            var div = document.createElement('div');
+            div.style.width = this.width + 'px';
+            div.style.height = this.height + 'px';
+            div.style.backgroundColor = this.color;
+            div.style.position = 'absolute';
+
+            this.x = parseInt(Math.random() * (map.offsetWidth / this.width)) * this.width;
+            this.y = parseInt(Math.random() * (map.offsetHeight / this.height)) * this.height;
+            div.style.left = this.x + 'px';
+            div.style.top = this.y + 'px';
+            map.appendChild(div);
+            elements.push(div);
+        }
+
+        function remove() {
+            elements = elements.filter(div => {
+                div.parentNode.removeChild(div);
+                return false;
+            });
+        }
+
+        window.Food = Food;
+    })();
+
+    // 蛇
+    (function () {
+        var elements = [];
+        function Snake(width, height, direction) {
+            this.width = width || 20;
+            this.height = height || 20;
+            this.direction = direction || 'right';
+
+            this.body = [
+                { x: 3, y: 2, color: 'red' }, // 头
+                { x: 2, y: 2, color: 'orange' }, // 身体
+                { x: 1, y: 2, color: 'orange' }, // 身体
+            ];
+        }
+
+        Snake.prototype.init = function (map) {
+            remove();
+            for (let i = 0; i < this.body.length; i++) {
+                const obj = this.body[i];
+
+                var div = document.createElement('div');
+                div.style.width = this.width + 'px';
+                div.style.height = this.height + 'px';
+                div.style.backgroundColor = obj.color;
+                div.style.position = 'absolute';
+                div.style.left = obj.x * this.width + 'px';
+                div.style.top = obj.y * this.height + 'px';
+                if (i === 0) {
+                    div.innerText = this.body.length;
+                }
+
+                map.appendChild(div);
+                elements.push(div);
+            }
+        }
+
+        Snake.prototype.move = function (food, map) {
+            for (let i = this.body.length - 1; i > 0; i--) {
+                // console.log(i);
+                this.body[i].x = this.body[i - 1].x;
+                this.body[i].y = this.body[i - 1].y;
+            }
+
+            // 判断方向，头的位置
+            switch (this.direction) {
+                case 'right':
+                    this.body[0].x += 1;
+                    break;
+                case 'left':
+                    this.body[0].x -= 1;
+                    break;
+                case 'top':
+                    this.body[0].y -= 1;
+                    break;
+                case 'bottom':
+                    this.body[0].y += 1;
+                    break;
+            }
+
+            // 判断吃到食物
+            var headX = this.body[0].x * this.width;
+            var headY = this.body[0].y * this.height;
+
+            if (headX === food.x && headY === food.y) {
+                let last = this.body[this.body.length - 1];
+                this.body.push({
+                    x: last.x,
+                    y: last.y,
+                    color: last.color
+                });
+                food.init(map);
+            }
+        }
+
+        function remove() {
+            elements = elements.filter(div => {
+                div.parentNode.removeChild(div);
+                return false;
+            });
+        }
+
+        window.Snake = Snake;
+    })();
+
+    // 游戏
+    (function () {
+        function Game(map) {
+            this.map = map;
+            this.food = new Food();
+            this.snake = new Snake();
+            this.gameRunning = false;
+            this.gameOver = false;
+        }
+
+        Game.prototype.init = function () {
+            this.food.init(this.map);
+            this.snake.init(this.map);
+            // this.runSnake();
+            this.bindKey();
+        }
+
+        Game.prototype.runSnake = function () {
+            this.gameRunning = true;
+            this.musicPlay();
+            this.timer = setInterval(() => {
+                this.snake.move(this.food, this.map);
+                this.snake.init(this.map);
+
+                var headX = this.snake.body[0].x;
+                var headY = this.snake.body[0].y;
+                if (headX < 0 || headX * this.snake.width >= this.map.offsetWidth) {
+                    clearInterval(this.timer);
+                    this.gameRunning = false;
+                    this.gameOver = true;
+                    this.musicPause();
+                    alert('game over');
+                    console.log('结束游戏');
+                }
+                if (headY < 0 || headY * this.snake.height >= this.map.offsetHeight) {
+                    clearInterval(this.timer);
+                    this.gameRunning = false;
+                    this.gameOver = true;
+                    this.musicPause();
+                    alert('game over');
+                    console.log('结束游戏');
+                }
+            }, 100);
+        }
+
+        Game.prototype.bindKey = function () {
+            document.addEventListener('keydown', (e) => {
+                switch (e.keyCode) {
+                    case 37: this.snake.direction = 'left'; break;
+                    case 38: this.snake.direction = 'top'; break;
+                    case 39: this.snake.direction = 'right'; break;
+                    case 40: this.snake.direction = 'bottom'; break;
+                    case 32:
+                        this.toggleGame();
+                        break;
+                }
+            }, false);
+        }
+
+        Game.prototype.toggleGame = function () {
+            if (this.gameOver) {
+                return;
+            }
+            if (this.gameRunning) {
+                console.log('暂停游戏');
+                clearInterval(this.timer);
+                this.gameRunning = false;
+                this.musicPause();
+            } else {
+                console.log('继续游戏');
+                this.runSnake();
+            }
+        }
+
+        Game.prototype.musicPlay = function () {
+            document.getElementById('video').play();
+        }
+
+        Game.prototype.musicPause = function () {
+            document.getElementById('video').pause();
+        }
+
+        window.Game = Game;
+    })();
+
+    var game = new Game(document.getElementById('map'));
+    game.init();
+</script>
+
+</html>
