@@ -188,10 +188,17 @@
         }
     }
 
-    fetch('./music/mp3List.json').then(res => {
+    fetch('./music/mp3List.json', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    }).then(response => response.json()).then(res => {
         console.log(res);
-        musicList = res.data;
-        playMusic(curMusicIndex);
+        if (res.data) {
+            musicList = res.data;
+            playMusic(curMusicIndex);
+        }
     }).catch(err => {
         console.log(err);
         // document.getElementById('music').style.display = 'none';
