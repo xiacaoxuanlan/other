@@ -73,6 +73,7 @@
         <div class="btn left" data-direction="left">左</div>
     </div>
     <div class="btn-pause" id="btn-pause" onclick="btnToggleGame()">开始游戏</div>
+    <div id="log">log</div>
     <video id="video" controls="" autoplay="" name="media" style="display: none;">
         <source src="./mp3/屋顶-周杰伦.mp3" type="audio/mpeg">
     </video>
@@ -232,7 +233,7 @@
             this.snake.init(this.map);
             this.bindKey();
         }
-        
+
         Game.prototype.reset = function () {
             this.gameRunning = false;
             this.gameOver = false;
@@ -354,6 +355,7 @@
 
     function getBrowser() {
         let userAgent = navigator.userAgent;
+        document.getElementById('log').innerText += userAgent;
         if (userAgent.indexOf("Chrome") > -1) {
             return 'pc';
             // return "Google Chrome";
@@ -380,8 +382,8 @@
 
     console.log(getBrowser());
     if (getBrowser() === 'pc') {
-        document.getElementById('btn-box').style.display = 'none';
-        document.getElementById('btn-pause').style.display = 'none';
+        // document.getElementById('btn-box').style.display = 'none';
+        // document.getElementById('btn-pause').style.display = 'none';
     }
 </script>
 
