@@ -6,7 +6,7 @@
     <title>面向对象游戏-贪吃蛇</title>
     <style>
         .map {
-            width: 800px;
+            width: 100%;
             height: 600px;
             background-color: #CCC;
             position: relative;
@@ -14,10 +14,12 @@
         }
 
         .btn-box {
-            width: 800px;
+            width: 600px;
             height: 600px;
+
             position: relative;
-            margin-bottom: 20px;
+            margin: 0 auto;
+            margin-bottom: 60px;
         }
 
         .btn-box .btn {
@@ -52,7 +54,7 @@
         }
 
         .btn-pause {
-            width: 800px;
+            width: 100%;
             height: 200px;
             text-align: center;
             line-height: 200px;
@@ -72,15 +74,15 @@
         <div class="btn bottom" data-direction="bottom">下</div>
         <div class="btn left" data-direction="left">左</div>
     </div>
-    <div class="btn-pause" id="btn-pause" onclick="btnToggleGame()">开始游戏</div>
     <div id="log">log</div>
+    <div class="btn-pause" id="btn-pause" onclick="btnToggleGame()">开始游戏</div>
     <video id="video" controls="" autoplay="" name="media" style="display: none;">
-        <source src="./mp3/屋顶-周杰伦.mp3" type="audio/mpeg">
+        <source src="./music/屋顶-周杰伦.mp3" type="audio/mpeg">
     </video>
 </body>
 
 <script>
-    fetch('./mp3').then(res => {
+    fetch('./music/mp3List.json').then(res => {
         console.log(res);
     });
     // 食物
@@ -356,34 +358,40 @@
     function getBrowser() {
         let userAgent = navigator.userAgent;
         document.getElementById('log').innerText += userAgent;
-        if (userAgent.indexOf("Chrome") > -1) {
+        if (userAgent.indexOf("Android") == -1 && userAgent.indexOf("mobile") == -1) {
             return 'pc';
             // return "Google Chrome";
-        } else if (userAgent.indexOf("Safari") > -1) {
-            return 'mobile';
-            // return "Apple Safari";
-        } else if (userAgent.indexOf("Firefox") > -1) {
-            return 'pc';
-            // return "Mozilla Firefox";
-        } else if (userAgent.indexOf("MSIE") > -1 || userAgent.indexOf("Trident/") > -1) {
-            return 'pc';
-            // return "Microsoft Internet Explorer";
-        } else if (userAgent.indexOf("Edge") > -1) {
-            return 'pc';
-            // return "Microsoft Edge";
-        } else if (userAgent.indexOf("OPR") > -1) {
-            return 'pc';
-            // return "Opera";
         } else {
             return 'mobile';
-            // return "Unknown Browser";
         }
+        // if (userAgent.indexOf("Chrome") > -1) {
+        //     return 'pc';
+        //     // return "Google Chrome";
+        // } else if (userAgent.indexOf("Safari") > -1) {
+        //     return 'mobile';
+        //     // return "Apple Safari";
+        // } else if (userAgent.indexOf("Firefox") > -1) {
+        //     return 'pc';
+        //     // return "Mozilla Firefox";
+        // } else if (userAgent.indexOf("MSIE") > -1 || userAgent.indexOf("Trident/") > -1) {
+        //     return 'pc';
+        //     // return "Microsoft Internet Explorer";
+        // } else if (userAgent.indexOf("Edge") > -1) {
+        //     return 'pc';
+        //     // return "Microsoft Edge";
+        // } else if (userAgent.indexOf("OPR") > -1) {
+        //     return 'pc';
+        //     // return "Opera";
+        // } else {
+        //     return 'mobile';
+        //     // return "Unknown Browser";
+        // }
     }
 
     console.log(getBrowser());
     if (getBrowser() === 'pc') {
-        // document.getElementById('btn-box').style.display = 'none';
-        // document.getElementById('btn-pause').style.display = 'none';
+        document.getElementById('btn-box').style.display = 'none';
+        document.getElementById('btn-pause').style.display = 'none';
     }
 </script>
 
