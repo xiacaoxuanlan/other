@@ -83,7 +83,7 @@
         .music-box .music .prev svg {
             width: 60px;
             height: 60px;
-            fill: #666;
+            fill: blue;
         }
 
         .music-box .music .next svg {
@@ -110,7 +110,7 @@
             <source src="./music/屋顶-周杰伦.mp3" type="audio/mpeg">
         </video>
         <div class="music" id="music">
-            <div class="prev" id="music-prev">
+            <div class="prev" id="music-prev" onclick="musicPrev()">
                 <!-- 上一首 -->
                 <svg t="1730428954233" class="icon" viewBox="0 0 1024 1024" version="1.1"
                     xmlns="http://www.w3.org/2000/svg" p-id="4271" width="200" height="200">
@@ -123,7 +123,7 @@
                 </svg>
             </div>
             <div class="name" id="music-name">屋顶-周杰伦.mp3</div>
-            <div class="next" id="music-next">
+            <div class="next" id="music-next" onclick="musicNext()">
                 <!-- 下一首 -->
                 <svg t="1730429042085" class="icon" viewBox="0 0 1024 1024" version="1.1"
                     xmlns="http://www.w3.org/2000/svg" p-id="2877" width="200" height="200">
@@ -140,6 +140,9 @@
 </body>
 
 <script>
+    // 公共对象
+    var video = document.getElementById('video');
+
     var curMusicIndex = 0;
     var musicList = [
         {
@@ -154,38 +157,40 @@
     ];
     function playMusic(index) {
         const name = musicList[index].name;
-        document.getElementById('video').children[0].setAttribute('src', `./music/${name}`);
+        video.children[0].setAttribute('src', `./music/${name}`);
         document.getElementById('music-name').innerText = name;
-        document.getElementById('video').load();
+        video.load();
     }
 
     // 上一首
-    document.getElementById('music-prev').onclick = function () {
+    function musicPrev() {
         if (curMusicIndex === 0) {
-            return;
+            curMusicIndex = musicList.length - 1;
+        } else {
+            curMusicIndex--;
         }
-        curMusicIndex--;
         playMusic(curMusicIndex);
-        if (curMusicIndex === 0) {
-            document.getElementById('music-prev').getElementsByTagName('svg')[0].style.fill = '#666';
-        }
-        if (curMusicIndex !== musicList.length - 1) {
-            document.getElementById('music-next').getElementsByTagName('svg')[0].style.fill = 'blue';
-        }
+        // if (curMusicIndex === 0) {
+        //     document.getElementById('music-prev').getElementsByTagName('svg')[0].style.fill = '#666';
+        // }
+        // if (curMusicIndex !== musicList.length - 1) {
+        //     document.getElementById('music-next').getElementsByTagName('svg')[0].style.fill = 'blue';
+        // }
     }
     // 下一首
-    document.getElementById('music-next').onclick = function () {
+    function musicNext() {
         if (curMusicIndex === musicList.length - 1) {
-            return;
+            curMusicIndex = 0;
+        } else {
+            curMusicIndex++;
         }
-        curMusicIndex++;
         playMusic(curMusicIndex);
-        if (curMusicIndex !== 0) {
-            document.getElementById('music-prev').getElementsByTagName('svg')[0].style.fill = 'blue';
-        }
-        if (curMusicIndex === musicList.length - 1) {
-            document.getElementById('music-next').getElementsByTagName('svg')[0].style.fill = '#666';
-        }
+        // if (curMusicIndex !== 0) {
+        //     document.getElementById('music-prev').getElementsByTagName('svg')[0].style.fill = 'blue';
+        // }
+        // if (curMusicIndex === musicList.length - 1) {
+        //     document.getElementById('music-next').getElementsByTagName('svg')[0].style.fill = '#666';
+        // }
     }
 
     fetch('./music/mp3List.json', {
@@ -222,8 +227,10 @@
             div.style.backgroundColor = this.color;
             div.style.position = 'absolute';
 
-            this.x = parseInt(Math.random() * (map.offsetWidth / this.width)) * this.width;
-            this.y = parseInt(Math.random() * (map.offsetHeight / this.height)) * this.height;
+            // console.log(map.offsetWidth , this.width);
+            
+            this.x = parseInt(Math.random() * ((map.offsetWidth / this.width) - 1)) * this.width;
+            this.y = parseInt(Math.random() * ((map.offsetHeight / this.height) - 1)) * this.height;
             div.style.left = this.x + 'px';
             div.style.top = this.y + 'px';
             map.appendChild(div);
@@ -432,11 +439,11 @@
         }
 
         Game.prototype.musicPlay = function () {
-            document.getElementById('video').play();
+            video.play();
         }
 
         Game.prototype.musicPause = function () {
-            document.getElementById('video').pause();
+            video.pause();
         }
 
         window.Game = Game;
@@ -473,6 +480,12 @@
         // console.log(e.target.dataset.direction);
         game.snake.direction = e.target.dataset.direction;
     }, false);
+
+    video.addEventListener('ended', function() {
+        console.log('视频播放已结束！');
+        musicNext();
+        // 在这里可以执行其他逻辑，比如显示一个按钮或者提示
+    });
 
     function getBrowser() {
         let userAgent = navigator.userAgent;
