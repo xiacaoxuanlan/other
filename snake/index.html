@@ -478,7 +478,9 @@
 
     document.getElementById('btn-box').addEventListener('click', (e) => {
         // console.log(e.target.dataset.direction);
-        game.snake.direction = e.target.dataset.direction;
+        if (e.target.dataset.direction) {
+            game.snake.direction = e.target.dataset.direction;
+        }
     }, false);
 
     video.addEventListener('ended', function() {
